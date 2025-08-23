@@ -9,7 +9,7 @@ A real-time, anonymous chat app inspired by Omegle. Built with Next.js, Redis, S
 - **Backend**: Node.js, Express, Socket.IO
 - **Database**: PostgreSQL (with Prisma ORM)
 - **Auth**: JWT + HTTP-only cookies
-- **Caching, Redisearch, realtime changes**: Redis
+- **Caching, Redisearch, realtime changes, concurrency**: Redis
 - **Containerization**: Docker & Docker Compose (multi-compose setup)
 Optionally:
 - **Reverse Proxy + SSL**: Nginx + Certbot
