@@ -1,0 +1,58 @@
+services:
+  # ─── Web Service: Socket.IO / Express Server ───────────────────────────────
+  - type: web
+    name: strangerlink-server
+    runtime: node
+    repo: https://github.com/Priapisman677/StrangerLink
+    rootDir: server
+    buildCommand: |
+      cd ../shared && npm ci && cd ../server && npm ci && npx prisma generate --schema=../shared/prisma/schema.prisma
+    startCommand: npx tsx --require tsconfig-paths/register src/app-listens.ts
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: '6379'
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+    autoDeploy: true
+
+  # ─── Web Service: Next.js Client ──────────────────────────────────────────
+  - type: web
+    name: strangerlink-client
+    runtime: node
+    repo: https://github.com/Priapisman677/StrangerLink
+    rootDir: client
+    buildCommand: |
+      cd ../shared && npm ci && cd ../client && npm ci && npx prisma generate --schema=../shared/prisma/schema.prisma && npm run build
+    startCommand: npx next start -p $PORT
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: '6379'
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: NEXT_PUBLIC_INTERNAL_URL
+        sync: false
+      - key: NEXT_PUBLIC_INTERNAL_PORT
+        value: '10000'
+      - key: NEXT_PUBLIC_EXPRESS_URL
+        sync: false
+      - key: NEXT_PUBLIC_EXPRESS_PORT
+        sync: false
+    autoDeploy: true

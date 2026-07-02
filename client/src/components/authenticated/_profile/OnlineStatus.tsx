@@ -2,7 +2,7 @@
 
 import { usePassiveSocketContext } from "@/context/passive-socket-context"
 import { usePassiveSocket } from "@/hooks/usePassiveSocket"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function  OnlineStatus({online, userId}: {online: boolean, userId: string}) {
 
@@ -13,7 +13,9 @@ export default function  OnlineStatus({online, userId}: {online: boolean, userId
 
     const socket = usePassiveSocketContext();
 
-    socket.emit('join-room', userId, (serverResponse: string)=>{console.log(serverResponse)}) //* This won't just be to listen for online events.
+    useEffect(() => {
+        socket.emit('join-room', userId, (serverResponse: string)=>{console.log(serverResponse)});
+    }, [socket, userId]);
 
 
     return (

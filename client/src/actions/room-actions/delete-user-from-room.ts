@@ -76,9 +76,9 @@ export const deleteUserFromRoom = async ( userId: string, roomId: string): Promi
     await client.hDel(cacheUsersInRoomKey(roomId), userId);
 
     
-    await client.sRem(connectedUsersInRoomKey(roomId), userId!) //* Remove user from redis room
+    await client.sRem(connectedUsersInRoomKey(roomId), userId)
 
-    await client.sRem(userRoomsKey(userId!), roomId) //* Delete room from user  (user:a (room1, room2))
+    await client.sRem(userRoomsKey(userId), roomId)
 
     await client.publish('kick-user', JSON.stringify({ userId, roomId, kickedBy: isAdmin.user.username, kicking: foundRelation.user.username }));
 

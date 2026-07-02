@@ -1,59 +1,128 @@
 
-import * as cookie from 'cookie'; // ✅ Works in ESM+Jest
+import * as cookie from 'cookie';
 
 import { Socket } from 'socket.io';
 import { prisma } from 'src/lib/db.js';
 import { verifyToken } from 'src/lib/tokens.js';
 
-export const middleWare = async ( socket: Socket, next: (err?: Error) => void) => {
-	//- Most of the logic of authentication for sockets will not be used because to use sockets as a page requires authentication itself.
-	//- It is just an extra paranoic security measure in case someone tries to connect to the socket from outside the frontend lol.
+const connectionCounts = new Map<string, { count: number; resetAt: number }>();
+const CONNECTION_LIMIT = 20;
+const CONNECTION_WINDOW_MS = 60000;
 
-	//$ io.use((socket, next) => { ... }) is a connection-level middleware.
-	//$ It runs before the connection event is fired.
+setInterval(() => {
+	const now = Date.now();
+	for (const [ip, entry] of connectionCounts) {
+		if (now > entry.resetAt) connectionCounts.delete(ip);
+	}
+}, 60000);
 
+const checkConnectionRate = (socket: Socket): boolean => {
+	const ip = socket.handshake.address;
+	const now = Date.now();
+	const entry = connectionCounts.get(ip);
+
+	if (!entry || now > entry.resetAt) {
+		connectionCounts.set(ip, { count: 1, resetAt: now + CONNECTION_WINDOW_MS });
+		return true;
+	}
+
+	if (entry.count >= CONNECTION_LIMIT) {
+		return false;
+	}
+
+	entry.count++;
+	return true;
+};
+
+const parseToken = (socket: Socket): string | null => {
 	const rawCookie = socket.handshake.headers.cookie || '';
 	const parsedCookies = cookie.parse(rawCookie);
+	return parsedCookies['SERVER_TOKEN'] || null;
+};
 
-	//- I don't call this cookie because I'm already importing something called cookie.
-	const token = parsedCookies['SERVER_TOKEN'];
+const authenticateSocketStrict = async ( socket: Socket, next: (err?: Error) => void) => {
+	if (!checkConnectionRate(socket)) {
+		next(new Error('Too many connection attempts. Please slow down.'));
+		return;
+	}
+
+	const token = parseToken(socket);
 	if (!token) {
-		console.log('Cookie not found at sockets-setup.ts.');
+		next(new Error('Authentication required'));
+		return;
+	}
 
+	const decoded = verifyToken(token);
+	if (!decoded) {
+		next(new Error('Invalid token'));
+		return;
+	}
+
+	try {
+		const user = await prisma.user.findFirst({
+			where: { id: decoded },
+			select: {
+				email: true,
+				id: true,
+				username: true,
+			},
+		});
+
+		if (!user) {
+			next(new Error('User not found'));
+			return;
+		}
+
+		socket.user = user;
+		next();
+	} catch {
+		next(new Error('Authentication service unavailable'));
+	}
+};
+
+const authenticateSocketOptional = async ( socket: Socket, next: (err?: Error) => void) => {
+	if (!checkConnectionRate(socket)) {
+		next(new Error('Too many connection attempts. Please slow down.'));
+		return;
+	}
+
+	const token = parseToken(socket);
+	if (!token) {
 		socket.user = null;
-
 		next();
 		return;
 	}
 
 	const decoded = verifyToken(token);
-
 	if (!decoded) {
-		console.log('Invalid jwt token at sockets-setup.');
-
 		socket.user = null;
 		next();
 		return;
 	}
 
-	const user = await prisma.user.findFirst({
-		where: { id: decoded },
-		select: {
-			email: true,
-			id: true,
-			username: true,
-		},
-	});
+	try {
+		const user = await prisma.user.findFirst({
+			where: { id: decoded },
+			select: {
+				email: true,
+				id: true,
+				username: true,
+			},
+		});
 
-	if (!user) {
-		console.log('User not found at sockets-setup.ts.');
+		if (!user) {
+			socket.user = null;
+			next();
+			return;
+		}
 
+		socket.user = user;
+		next();
+	} catch {
 		socket.user = null;
 		next();
-		return;
 	}
-	
-	socket.user = user;
-
-	next();
 };
+
+export const middleWare = authenticateSocketOptional;
+export const strictAuthMiddleware = authenticateSocketStrict;

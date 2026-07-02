@@ -2,15 +2,30 @@ import { Socket } from 'socket.io';
 import { prisma } from 'src/lib/db.js';
 import { handleBlobMessage } from 'src/sockets/handle-blob-message.js';
 
+const MAX_TEXT_LENGTH = 2000;
+
 //prettier-ignore
 export const onSendMessage = async ( socket: Socket, payload: ClientPrivateMessage, roomName: string,
 	cb: ({ error }: { error: string | null }) => void
 ) => {
 
+	if (!socket.user) {
+		cb({ error: 'Authentication required to send messages' });
+		return;
+	}
+
+	const identifier = socket.user.id;
+	const userId = socket.user.id;
+
 	if (payload.messageType === 'text') {
-		socket.to(roomName).emit('receive-message', payload);
-        const identifier = socket.user ? socket.user?.id : payload.identifier
-        const userId = socket.user ? socket.user.id : 'CONSTRUCTOR'
+		const textContent = (payload.textContent || '').trim().slice(0, MAX_TEXT_LENGTH);
+		if (!textContent) {
+			cb({ error: 'Message cannot be empty' });
+			return;
+		}
+
+		const sanitizedPayload = { ...payload, textContent, userId, identifier };
+		socket.to(roomName).emit('receive-message', sanitizedPayload);
 
         await prisma.message.create({
             data: {
@@ -18,7 +33,7 @@ export const onSendMessage = async ( socket: Socket, payload: ClientPrivateMessa
                 messageType: 'text',
                 roomId: 'GLOBAL',
                 userId,
-                textContent: payload.textContent,
+                textContent,
             }
         })
 
@@ -32,20 +47,8 @@ export const onSendMessage = async ( socket: Socket, payload: ClientPrivateMessa
             return
             
         }
-        socket.to(roomName).emit('receive-message', payload);
+        socket.to(roomName).emit('receive-message', {...payload, userId, identifier});
 		cb({error: null})
-
-        const identifier = socket.user ? socket.user?.id : payload.identifier
-        const userId = socket.user ? socket.user.id : 'CONSTRUCTOR'
-
-
-        console.log({
-            type: typeof payload.bytes,
-            constructor: payload.bytes?.constructor?.name,
-            isBuffer: Buffer.isBuffer(payload.bytes),
-            isUint8Array: payload.bytes instanceof Uint8Array
-        });
-        
 
         await prisma.message.create({
             data: {
@@ -58,13 +61,6 @@ export const onSendMessage = async ( socket: Socket, payload: ClientPrivateMessa
                 bytes: payload.bytes
             }
         })
-
-        console.log(await prisma.message.findMany({
-            where: {
-                roomId: 'GLOBAL'
-            }
-        }));
-
 
 	return;
         

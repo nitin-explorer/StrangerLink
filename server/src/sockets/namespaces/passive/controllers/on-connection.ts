@@ -6,12 +6,10 @@ import { sendGlobalSocketsCount } from "../send-global-sockets-count.js";
 
 export const onConnection = async(socket: Socket, namespace: Namespace)=>{
     
-    console.log('Connection attempt to /passive from: ', socket.handshake.address);
-    
 
     await sendGlobalSocketsCount(socket, namespace, 'add')
     
-    if(!socket.user){ //* Unauthenticated users will be handled in a different way.
+    if(!socket.user){
         socket.on('disconnect', async ()=>{
             await sendGlobalSocketsCount(socket, namespace, 'remove')
         })
@@ -23,9 +21,9 @@ export const onConnection = async(socket: Socket, namespace: Namespace)=>{
     const userId = socket?.user?.id 
     await client.sAdd(globalActiveUsersKey(socket.user.id), socket.id) 
 
-    await client.expire(globalActiveUsersKey(socket.user.id), 60 * 60) //* 1 hour.
+    await client.expire(globalActiveUsersKey(socket.user.id), 60 * 60)
 
-    namespace.to(userId).emit('status-update', true) //$ Not going to perform a check of the count, this will always be true.
+    namespace.to(userId).emit('status-update', true)
 
     registerSocketHandlers(socket, namespace)
 

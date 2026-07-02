@@ -2,10 +2,10 @@ type UserSession = {
 	id: string;
 	email: string;
 	username: string;
-	profilePicPath: string?;
-	countryCode: string?;
-	gender: ('male'|'female'|'unknown')?;
-	bio: string?
+	profilePicPath: string | null;
+	countryCode: string | null;
+	gender: ('male'|'female'|'unknown') | null;
+	bio: string | null
 };
 type ActionResponse = {
 	success: boolean;
@@ -54,7 +54,7 @@ type RoomMeta = {
 	users: {
 		id: string;
 		username: string;
-		profilePicPath: string?;
+		profilePicPath: string | null;
 		role: 'member' | 'admin';
 	}[];
 };
@@ -79,7 +79,7 @@ interface PublicRoomsActionResponse extends ActionResponse {
 		roomName: string;
    		roomPicPath: string | null;
     	roomUserCount: number;
-		unReadMessages: null //* This will just be for a type of compatibility in <UserRooms> tsx
+		unReadMessages: number | null
 		id: string
 	}[]
 }
@@ -89,8 +89,8 @@ interface InviteUserOwnRoomActionResponse extends ActionResponse {
 		id: string;
 		roomName: string;
 		roomPicPath: string | null;
-		unReadMessages: null;
-		roomUserCount: null
+		unReadMessages: number | null;
+		roomUserCount: number | null
 	}[]
 }
 

@@ -3,6 +3,8 @@
 
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/db';
+import { client } from '@/lib/redis-clients';
+import { cacheUsersInRoomKey } from '@shared/keys/rooms-keys';
 import { withValidation } from '../wrapper-validator';
 import { createRoomSchema } from '@/lib/zodSchemas/room-schema';
 
@@ -14,28 +16,30 @@ const _createRoom = async ({roomName, isPrivate}: {roomName: string, isPrivate: 
     const userId = headerStore.get('userId')
 
     if(!userId){
-        //! This check might be USELESS because it is supposed that if there is no cookie the request would have been stopped in the middleware.
         return { success: false, msg: 'User not found.' };
     }
 
+    const userExists = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true },
+    });
 
-    const room = await prisma.room.create({
-        data: {
-            createdById: userId,
-            roomName,
-            isPrivate
+    if (!userExists) {
+        return { success: false, msg: 'User not found.' };
+    }
 
-        }
+    const room = await prisma.$transaction(async (tx) => {
+        const createdRoom = await tx.room.create({
+            data: { createdById: userId, roomName, isPrivate }
+        })
+        await tx.roomUser.create({
+            data: { userId, roomId: createdRoom.id, role: 'admin', unReadMessages: 0 }
+        })
+        return createdRoom
     })
 
-    await prisma.roomUser.create({
-        data:{
-            userId,
-            roomId: room.id,
-            role: 'admin',
-            unReadMessages: 0
-        }
-    })
+    await client.hSet(cacheUsersInRoomKey(room.id), { [userId]: 'admin' })
+
     return { success: true, msg: 'Success' , room};
 };
 

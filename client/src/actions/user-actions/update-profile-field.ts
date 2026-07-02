@@ -18,6 +18,7 @@ const _updateProfileField = async ({value, updateField}: {value: string, updateF
 
 	if (updateField === 'bio') {
 		if (value.length > 100) return { success: false, msg: 'Bio must be at most 100 characters.' };
+		value = value.trim().replace(/<[^>]*>/g, '');
 	}
 
 	const headerStore = await headers();
@@ -43,7 +44,7 @@ const _updateProfileField = async ({value, updateField}: {value: string, updateF
 	});
 
 	if(updateField === 'username'){
-		client.json.set(userJSONkey(userId), '$.data.username', value)
+		await client.json.set(userJSONkey(userId), '$.data.username', value)
 	}
 
 	return { success: true, msg: 'Success' };

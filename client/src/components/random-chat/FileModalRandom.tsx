@@ -31,6 +31,8 @@ export function FileModalRandom( { file, insertMessage, handleCloseModal }: File
                 fileUrl: null,
                 fileName: file.name,
                 fileType: file.type,
+                fileSize: file.size,
+                mimeType: file.type,
                 bytes,
                 identifier: session?.id || socket.id!,
                 countryCode: session?.countryCode || null,

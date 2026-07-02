@@ -16,7 +16,6 @@ export const deleteAccount = async (password: string): Promise<ActionResponse> =
 	const userId = headerStore.get('userId');
 
 	if (!userId) {
-		//! This check might be USELESS because it is supposed that if there is no cookie the request would have been stopped in the middleware.
 		return { success: false, msg: 'User not found.' };
 	}
 
@@ -30,24 +29,21 @@ export const deleteAccount = async (password: string): Promise<ActionResponse> =
 
     if (!isValid) return { success: false, msg: 'Invalid password' };
 
-	await prisma.user.delete({
-		where: {id: userId,},
-	});
-
 	const rooms = await client.sMembers(userRoomsKey(userId));
 
 	await Promise.all([
 		...rooms.map(async (roomId) => {
-			client.sRem(connectedUsersInRoomKey(roomId), userId!); //* Remove user from the room (room:a (user1, user2))
-			// await sendOnlineUsersCount(roomId, client as RedisClientType, io) //* For the green circle
+			await client.sRem(connectedUsersInRoomKey(roomId), userId);
 		}),
 		client.del(userRoomsKey(userId)),
 	]);
 
+	await prisma.user.delete({
+		where: {id: userId,},
+	});
+
     await deleteSession()
 
-	// return { msg: 'Success', success: true } as ActionResponse;
-
-    redirect('/signup');
+	redirect('/signup');
 
 };

@@ -17,18 +17,21 @@ export const rateLimiter = async ({
 	const key = rateLimitKey(userId, actionKey);
     const now = Date.now();
 
-    const  windowStart = now - windowSizeSecs * 1000; //let's  say now: 999s - 10s = 989s.
+    const  windowStart = now - windowSizeSecs * 1000;
 
-    // So we want to remove all values from 0 to 989s.
+    await client.zAdd(key, [{score: now, value: `req-${now}`}]);
 
-    await  client.zRemRangeByScore(key, 0, windowStart);
-
-    //Add new entry.
-    await client.zAdd(key, [{score: now, value: `req-${now}` }]) //$ value can be ATYHING unique.
+    await client.zRemRangeByScore(key, 0, windowStart);
 
     const count = await client.zCard(key)
 
-    await client.expire(key, windowSizeSecs) // (optional) Let's send someone sends numOfAllowedRequests -1 in the allowed time, if we don't expire, it will exist forever
+    if (count > limit) {
+        await client.zRem(key, `req-${now}`);
+        await client.expire(key, windowSizeSecs);
+        return true;
+    }
 
-	return count > limit;
+    await client.expire(key, windowSizeSecs);
+
+	return false;
 };

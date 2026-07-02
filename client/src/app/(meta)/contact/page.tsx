@@ -1,4 +1,11 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'Contact',
+  description:
+    'Get in touch with the StrangerLink team. Report bugs, send feedback, or ask questions about the anonymous chat platform.',
+};
 
 //prettier-ignore
 export default function ContactPage() {

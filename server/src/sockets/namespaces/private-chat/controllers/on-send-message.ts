@@ -1,4 +1,4 @@
-import { connectedUsersInRoomKey } from '@shared/keys/rooms-keys.js';
+import { cacheUsersInRoomKey, connectedUsersInRoomKey } from '@shared/keys/rooms-keys.js';
 import { Socket } from 'socket.io';
 import { prisma } from 'src/lib/db.js';
 import { client } from 'src/lib/redis-clients.js';
@@ -6,15 +6,21 @@ import { saveTextMessage } from 'src/lib/save-text-messages.js';
 
 export const onSendMessage = async (socket: Socket, payload: ClientPrivateMessage, userId: string) => {
 
+	const role = await client.hGet(cacheUsersInRoomKey(payload.roomId), userId);
+	if (!role) {
+		const memberCheck = await prisma.roomUser.findUnique({
+			where: { userId_roomId: { userId, roomId: payload.roomId } },
+		});
+		if (!memberCheck) {
+			socket.emit('error-event', { error: 'You are not a member of this room.' });
+			return;
+		}
+	}
 
 	if (payload.messageType === 'file') {
-		//* File gets  saved in Next,  I will not send the bytes using sockets lol.
+		//* File gets saved in Next
 	} else if (payload.messageType === 'text') {
-		const result = await saveTextMessage(payload as ClientPrivateTextMessage, userId!);
-
-		console.log({result});
-		
-
+		const result = await saveTextMessage(payload as ClientPrivateTextMessage, userId);
 
 		if(!result.success) return socket.emit('error-event', result.msg);
 
@@ -22,23 +28,6 @@ export const onSendMessage = async (socket: Socket, payload: ClientPrivateMessag
 		socket.emit('error-event', { error: 'Invalid content Type' });
 		return;
 	}
-
-	// const isReceiverInRoom = await client.sIsMember(connectedUsersInRoomKey(payload.roomId), socket.id)
-	// if(!isReceiverInRoom){
-	// 	await prisma.roomUser.update({
-	// 		where: {
-	// 			userId_roomId: {
-	// 				userId,
-	// 				roomId: payload.roomId
-	// 			}
-	// 		},
-	// 		data: {
-	// 			unReadMessages :{
-	// 				increment: 1
-	// 			}
-	// 		}
-	// 	})
-	// }
 
 	const usersInRoom = await prisma.roomUser.findMany({
 		where: {
@@ -57,32 +46,28 @@ export const onSendMessage = async (socket: Socket, payload: ClientPrivateMessag
 
 	const usersInRoomSocketIds = await client.sMembers(connectedUsersInRoomKey(payload.roomId))
 
-	for(const userId of usersInRoomIds){
+	const offlineUserIds = usersInRoomIds.filter(id => !usersInRoomSocketIds.includes(id))
 
-		if(!usersInRoomSocketIds.includes(userId)){
-			await prisma.roomUser.update({
-				where: {
-					userId_roomId: {
-						userId,
-						roomId: payload.roomId
-					}
-				},
-				data: {
-					unReadMessages :{
-						increment: 1
-					}
-				}
-			})
-		}
-
+	if (offlineUserIds.length > 0) {
+		await prisma.roomUser.updateMany({
+			where: {
+				userId: { in: offlineUserIds },
+				roomId: payload.roomId,
+			},
+			data: {
+				unReadMessages: { increment: 1 }
+			}
+		})
 	}
-	
-	
 
-
+	const securePayload = {
+		...payload,
+		userId: socket.user?.id || userId,
+		identifier: socket.user?.id || userId,
+	};
 	socket.broadcast
 		.to(payload.roomId)
-		.emit('receive-message', { ...payload });
+		.emit('receive-message', securePayload);
 
 	return;
 };

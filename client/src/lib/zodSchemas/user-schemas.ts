@@ -14,7 +14,7 @@ export const signupSchema = z.object({
 		.nonempty('Email is required.'),
 	password: z
 		.string({ required_error: 'Password is required.' })
-		.min(6, 'Password must be at least 6 characters long.')
+		.min(8, 'Password must be at least 8 characters long.')
 		.nonempty('Password is required.'),
 	image: z.string().optional(),
 });

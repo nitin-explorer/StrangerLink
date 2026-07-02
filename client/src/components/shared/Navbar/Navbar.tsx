@@ -16,7 +16,7 @@ export default function Navbar() {
 	return (
 		<div className="w-full h-[50px] bg-[#131313]  flex gap-10 items-center">
 			<Link href={'/'} className='cursor-pointer'>
-				<img src="/nav-omegalol.png" className="h-7 w-auto object-contain ml-2"></img>
+				<img src="/nav-strangerlink.png" className="h-7 w-auto object-contain ml-2"></img>
 			</Link>
 			<div className="flex items-center justify-around w-[90%] h-full">
 				<NavLink href={'/chat'} icon={<></>} label={'Private Rooms'}></NavLink>

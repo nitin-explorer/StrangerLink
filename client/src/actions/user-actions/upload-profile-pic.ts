@@ -21,12 +21,13 @@ const _uploadProfilePic = async(file: File)=>{
     }
     
     // * Save to public
-    fs.mkdir('media/profile-pics', {recursive: true})
+    await fs.mkdir('media/profile-pics', {recursive: true})
 
     
     const bytes = new Uint8Array (await file.arrayBuffer()) // "Buffer.from(<>)" would also work.
     
-    const path = 'media/profile-pics/' + crypto.randomUUID() + '-' + file.name
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const path = 'media/profile-pics/' + crypto.randomUUID() + '-' + safeName
     await fs.writeFile(path, bytes)
 
     await prisma.user.update({
@@ -36,7 +37,7 @@ const _uploadProfilePic = async(file: File)=>{
         }
     })
 
-    client.json.set(userJSONkey(userId), '$.data.profilePicPath', path)
+    await client.json.set(userJSONkey(userId), '$.data.profilePicPath', path)
 
     return { success: true, msg: 'Success'}
 }

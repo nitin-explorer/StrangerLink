@@ -23,9 +23,6 @@ export const onJoinRoom = async(socket: Socket, io: Namespace, userId: string,  
             }
         })
 
-        console.log({role});
-        
-
         if(isMemberPrisma){
             await client.hSet(cacheUsersInRoomKey(roomId), {[userId]: isMemberPrisma.role}) 
         }else{
@@ -35,8 +32,8 @@ export const onJoinRoom = async(socket: Socket, io: Namespace, userId: string,  
     }
 
     await Promise.all([
-        client.sAdd(connectedUsersInRoomKey(roomId), userId!), //* Add user to the room (room:a (user1, user2))
-        client.sAdd(userRoomsKey(userId!), roomId) //* Add to room to the user  (user:a (room1, room2))
+        client.sAdd(connectedUsersInRoomKey(roomId), userId), //* Add user to the room (room:a (user1, user2))
+        client.sAdd(userRoomsKey(userId), roomId) //* Add to room to the user  (user:a (room1, room2))
     ])
 
     socket.join(roomId)

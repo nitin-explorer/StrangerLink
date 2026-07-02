@@ -1,6 +1,6 @@
 "use client"
 import { serverBaseURL } from '@/lib/network';
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 export const SocketContext = createContext<Socket | null>(null);
@@ -9,18 +9,20 @@ type Props = {
     children: React.ReactNode;
 };
 
-const socket = io(serverBaseURL.href + 'passive', {
-    withCredentials: false,
-    transports: ["websocket"],
-    autoConnect: true
-});
-console.log('connected to passive');
-
 export const PassiveSocketProvider = ({ children,}: Props) => {
 
-    
+    const [socket] = React.useState(() => io(serverBaseURL.href + 'passive', {
+        withCredentials: true,
+        transports: ["websocket"],
+        autoConnect: true
+    }));
 
-    
+    useEffect(() => {
+        return () => {
+            socket.disconnect();
+        };
+    }, [socket]);
+
     return (
         <SocketContext.Provider value={socket}>
             {children}

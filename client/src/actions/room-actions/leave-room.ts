@@ -3,7 +3,8 @@
 
 import { prisma } from "@/lib/db";
 import { client } from "@/lib/redis-clients";
-import { cacheUsersInRoomKey } from "@shared/keys/rooms-keys";
+import { cacheUsersInRoomKey, connectedUsersInRoomKey } from "@shared/keys/rooms-keys";
+import { userRoomsKey } from "@shared/keys/user-keys";
 import { headers } from "next/headers";
 
 export const leaveRoom  = async(roomId: string)=>{
@@ -12,7 +13,6 @@ export const leaveRoom  = async(roomId: string)=>{
     const userId = headerStore.get('userId')
 
     if(!userId){
-        //! This check might be USELESS because it is supposed that if there is no cookie the request would have been stopped in the middleware.
         return { success: false, msg: 'User not found.' };
     }
 
@@ -34,7 +34,11 @@ export const leaveRoom  = async(roomId: string)=>{
         }
     })
     
-    await client.hDel(cacheUsersInRoomKey(roomId),userId);
+    await Promise.all([
+        client.hDel(cacheUsersInRoomKey(roomId), userId),
+        client.sRem(connectedUsersInRoomKey(roomId), userId),
+        client.sRem(userRoomsKey(userId), roomId),
+    ]);
 
     const remainingRoomUsers = await prisma.roomUser.findMany({
         where: {

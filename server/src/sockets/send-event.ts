@@ -9,22 +9,25 @@ export const sendAndSaveEvent = async(namespace: Namespace, color: ('red' | 'gre
         username: color,
         messageType: 'event',
         userId: 'event-user',
-        profilePicPath: null,
+        identifier: 'event',
         timeStamp: new Date(),
         roomId,
         textContent: textContent
     } as EventMessage)
 
-    await prisma.message.create({
-        data: {
-            messageType: 'event',
-            identifier: 'event',
-            textContent,
-            roomId,
-            userId: 'CONSTRUCTOR'
-        }
-    })
-
+    try {
+        await prisma.message.create({
+            data: {
+                messageType: 'event',
+                identifier: 'event',
+                textContent,
+                roomId,
+                userId: 'CONSTRUCTOR'
+            }
+        })
+    } catch (err) {
+        console.error('Failed to save event message:', err)
+    }
 
     return
 }

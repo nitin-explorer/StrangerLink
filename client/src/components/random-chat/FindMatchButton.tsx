@@ -72,7 +72,7 @@ export function FindMatchButton({insertMessage, setMessages, setUsersTyping}: Pr
 				messageType: 'event',
 				textContent: "You disconnected",
 				userId: 'event-user',
-				profilePicPath: null,
+				identifier: 'event',
 				roomId: 'random room',
 				username: 'gray',
 				timeStamp: new Date()

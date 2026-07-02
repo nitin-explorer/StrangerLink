@@ -3,6 +3,7 @@ import { MdOutlineMale } from "react-icons/md"
 import { FaGenderless } from "react-icons/fa6"
 import { IoMdFemale } from "react-icons/io"
 import CountyIcon from "./CountryIcon";
+import { useEffect, useRef } from "react";
 type TextMessageProps = {
 	message: ClientPrivateFileMessageWhenReceived;
 	own: boolean;
@@ -21,9 +22,22 @@ unknown: <FaGenderless    size={20} className="cursor-pointer" />,
 //prettier-ignore
 export function  FileMessage ({message, own, showMeta, displayedUsername}: TextMessageProps) {
 
+    const blobUrlRef = useRef<string | null>(null);
+
     const src = message.bytes
         ? URL.createObjectURL(new Blob([message.bytes], { type: 'application/octet-stream' }))
         : new URL(`/api/getmessageimage?filename=${message.fileName}`, internalBaseURL).href;
+
+    useEffect(() => {
+        if (message.bytes) {
+            blobUrlRef.current = src;
+        }
+        return () => {
+            if (blobUrlRef.current) {
+                URL.revokeObjectURL(blobUrlRef.current);
+            }
+        };
+    }, []);
 
     return (
         <div className={`flex flex-col ${own ? 'text-end justify-end': 'text-start'}`}>

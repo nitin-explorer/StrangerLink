@@ -20,7 +20,10 @@ export const getOnlineUsersInRoomNumber = async(roomId: string)=>{
 
 export const getOnlineGlobalSocketsCount = async()=>{
 
-	const onlineUsersNumber = (await client.keys(globalActiveIPsKey('*'))).length //$ N or 0
+	let count = 0;
+	for await (const _key of client.scanIterator({ MATCH: globalActiveIPsKey('*'), COUNT: 100 })) {
+		count++;
+	}
 
-	return onlineUsersNumber
+	return count
 }

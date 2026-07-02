@@ -78,12 +78,10 @@ export const middleware = async (req: NextRequest) => {
 
 
 	//* If auth is valid and user gets this far:
-	const final = NextResponse.next();
-	// const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
+	const requestHeaders = new Headers(req.headers);
+	requestHeaders.set('userId', user?.data?.id ?? '');
 
-	//! Right now this will always be set, even if the user is not logged in (undefined will be sent).
-	final.headers.set('userId', user?.data?.id ?? '')//.userId!);
-
+	const final = NextResponse.next({ request: { headers: requestHeaders } });
 
 	return final;
 

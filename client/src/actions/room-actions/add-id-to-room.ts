@@ -1,10 +1,30 @@
 "use server";
 
+import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { client } from "@/lib/redis-clients";
 import { cacheUsersInRoomKey } from "@shared/keys/rooms-keys";
 
 export const addIdToRoom = async (userId: string, roomId: string) => {
+    const headerStore = await headers();
+    const callerUserId = headerStore.get('userId');
+
+    if (!callerUserId) {
+        return { success: false, msg: 'Unauthorized.' };
+    }
+
+    const callerMembership = await prisma.roomUser.findFirst({
+        where: {
+            userId: callerUserId,
+            roomId,
+            role: 'admin',
+        },
+    });
+
+    if (!callerMembership) {
+        return { success: false, msg: 'Only room admins can add users.' };
+    }
+
     const user = await prisma.user.findFirst({
         where: {
             id: userId,
@@ -27,7 +47,7 @@ export const addIdToRoom = async (userId: string, roomId: string) => {
 
     const result = await prisma.roomUser.create({
         data: {
-            userId, //$Remember in prisma these must a unique PAIR (you can only add a user to a room once)
+            userId,
             roomId,
             role: 'member',
             unReadMessages: 0,

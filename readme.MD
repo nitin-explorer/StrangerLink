@@ -1,4 +1,4 @@
-# Omegalol Chat Application
+# StrangerLink Chat Application
 
 A real-time, anonymous chat app inspired by Omegle. Built with Next.js, Redis, Socket.IO, PostgreSQL (Prisma ORM), and Docker.
 

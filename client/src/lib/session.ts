@@ -13,9 +13,10 @@ export const createSession = async (userId: string) => {
 
 	const cookieStore = await cookies();
 	cookieStore.set('SERVER_TOKEN', token, {
-		httpOnly: true, //$ Prevent JavaScript access in the browser.
+		httpOnly: true,
+		secure: true,
+		sameSite: 'lax',
 		expires: expiresAt,
-		// secure: true,
 	});
 };
 

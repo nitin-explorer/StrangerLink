@@ -1,4 +1,16 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: 'About',
+  description:
+    'Learn about StrangerLink — a modern anonymous chat platform and Omegle alternative built for fast, private conversations with strangers worldwide.',
+  openGraph: {
+    title: 'About StrangerLink — Anonymous Chat Platform',
+    description:
+      'StrangerLink is a free, modern alternative to Omegle. Chat with strangers globally, match randomly, or create private rooms.',
+  },
+};
 
 //prettier-ignore
 export default function AboutPage() {

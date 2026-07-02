@@ -5,7 +5,17 @@ import { sendOnlineUsersCount } from "../utils/shared-sockets.js"
 import { sendAndSaveEvent } from "src/sockets/send-event.js"
 
 export const onKick  = async(namespace: Namespace, client: RedisClientType, msg: string)=>{
-    const {userId, roomId, kickedBy, kicking} = JSON.parse(msg)
+    let userId: string, roomId: string, kickedBy: string, kicking: string
+    try {
+        const parsed = JSON.parse(msg)
+        userId = parsed.userId
+        roomId = parsed.roomId
+        kickedBy = parsed.kickedBy
+        kicking = parsed.kicking
+    } catch {
+        console.error('Failed to parse kick-user message:', msg)
+        return
+    }
 
     const socketId = await client.get(activeSocketPrivateTab(userId))
 
@@ -17,5 +27,5 @@ export const onKick  = async(namespace: Namespace, client: RedisClientType, msg:
 
     await sendAndSaveEvent(namespace, 'red', roomId, `${kicking} was kicked by ${kickedBy}`)
     
-    await sendOnlineUsersCount(roomId, client as RedisClientType, namespace); //* For the green circle
+    await sendOnlineUsersCount(roomId, client as RedisClientType, namespace);
 }

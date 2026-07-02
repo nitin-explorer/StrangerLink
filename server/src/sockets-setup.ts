@@ -1,8 +1,9 @@
 import app from './express-setup.js';
 
 import { Server } from 'socket.io';
+import crypto from 'crypto';
 import { createServer } from 'http';
-import { middleWare } from './sockets/middleware.js';
+import { middleWare, strictAuthMiddleware } from './sockets/middleware.js';
 import { onConnection as  onPrivateConnection} from './sockets/namespaces/private-chat/controllers/on-connection.js';
 import { onConnection as onPassiveConnection } from './sockets/namespaces/passive/controllers/on-connection.js';
 import { onConnection as onRandomConnection } from './sockets/namespaces/random-chat/controllers/on-connection.js';
@@ -10,27 +11,23 @@ import { onConnection as onGlobalConnection } from './sockets/namespaces/global/
 import { prisma } from './lib/db.js';
 
 
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+
 export const server = createServer(app);
 
-//* Exporting io just for testing in Jest, not needed in reality.
 export const io = new Server(server, {
 	cors: {
-		origin: 'http://localhost:3000',
+		origin: corsOrigin,
 		credentials: true,
 	},
 
-	//! Exceeding this limit totally disconnects the user socket and they would lose communication. Validate with Zod only instead.
-	//!  DO NOT USE.
-	//  maxHttpBufferSize:  5 * 100 * 1024, // 500kb
+	maxHttpBufferSize: 1 * 1024 * 1024, // 1MB
 })
-
-//- Most of the logic of authentication for sockets will not be used because to use sockets as a page requires authentication itself.
-//- It is just an extra paranoic security measure lol.
 
 
 //* P A S I V E
 const passiveIo = io.of('/passive')
-passiveIo.use(middleWare)
+passiveIo.use(strictAuthMiddleware)
 passiveIo.on('connection', (socket)=>{
 	onPassiveConnection(socket, passiveIo)
 })
@@ -38,7 +35,7 @@ passiveIo.on('connection', (socket)=>{
 
 //* P R I V A T E
 export const privateChatIo = io.of('/private')
-privateChatIo.use(middleWare)
+privateChatIo.use(strictAuthMiddleware)
 privateChatIo.on('connection', async (socket)=>{
 	onPrivateConnection(socket, privateChatIo, io)
 })	
@@ -46,7 +43,7 @@ privateChatIo.on('connection', async (socket)=>{
 
 //* R A N D O M
 const randomChatIo = io.of('/random')
-randomChatIo.use(middleWare) // * socket.user here It is used for the inviter room event, I need to cache user IDs. in the rooms cache.
+randomChatIo.use(middleWare)
 randomChatIo.on('connection', (socket)=>{
 	onRandomConnection(socket, randomChatIo)
 })
@@ -54,18 +51,11 @@ randomChatIo.on('connection', (socket)=>{
 
 //* G L O B A L
 const globalChatIo = io.of('/global')
-globalChatIo.use(middleWare) //* socket.user here is used to save the message 
+globalChatIo.use(middleWare)
 globalChatIo.on('connection', (socket)=>{
 	onGlobalConnection(socket, globalChatIo)
 })
 
-
-// const seedPrisma = async()=>{
-
-	
-
-// 	return
-// }
 
 await prisma.user.upsert({
 	create: {

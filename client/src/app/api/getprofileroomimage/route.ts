@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
+import path from 'path';
 import mime from 'mime'
+
+const ALLOWED_IMAGE_TYPES = ['profile-pics', 'room-pics'];
 
 export const GET = async (NextRequest: NextRequest) => {
     const imageName = NextRequest.nextUrl.searchParams.get('imagename');
@@ -16,18 +19,19 @@ export const GET = async (NextRequest: NextRequest) => {
         );
     }
 
-    if (!imageType) {
+    if (!imageType || !ALLOWED_IMAGE_TYPES.includes(imageType)) {
         return NextResponse.json(
             {
                 success: false,
-                error: 'Missing "type" query parameter.',
+                error: 'Missing or invalid "type" query parameter.',
             },
             { status: 400 }
         );
     }
 
-    const imagePath = `media/${imageType}/${imageName}`;
-    const imageMimeType = mime.getType(imageName) || 'application/octet-stream'
+    const sanitizedImageName = path.basename(imageName);
+    const imagePath = path.join('media', imageType, sanitizedImageName);
+    const imageMimeType = mime.getType(sanitizedImageName) || 'application/octet-stream'
 
     try{
         const stream = fs.createReadStream(imagePath)
@@ -39,6 +43,9 @@ export const GET = async (NextRequest: NextRequest) => {
         })
 
     }catch(e){
-        console.error(e);	
+        return NextResponse.json(
+            { success: false, error: 'Image not found.' },
+            { status: 404 }
+        );
     }
 };

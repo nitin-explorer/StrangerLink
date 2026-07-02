@@ -10,7 +10,7 @@ interface ServerGetUserRooms extends ServerResponse {
 }
 
 type userRoom = {
-	role: 'admin | member';
+	role: 'admin' | 'member';
 	roomName: string;
 	id: string;
 	isPrivate: boolean;
@@ -20,5 +20,5 @@ type userRoom = {
 		id: string;
 		username: string;
 	};
-	roomUserCount: null //* This will just be for a type of compatibility in <UserRooms> tsx
+	roomUserCount: number | null
 }; 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
+import path from 'path';
 import mime from 'mime'
 
 export const GET = async (NextRequest: NextRequest) => {
@@ -15,8 +16,9 @@ export const GET = async (NextRequest: NextRequest) => {
 		);
 	}
 
-    const filePath = `media/message-files/${fileName}`;
-    const fileMimeType = mime.getType(fileName) || 'application/octet-stream'
+	const sanitizedFileName = path.basename(fileName);
+	const filePath = path.join('media/message-files', sanitizedFileName);
+	const fileMimeType = mime.getType(sanitizedFileName) || 'application/octet-stream'
 
 	try{
         const stream = fs.createReadStream(filePath)
@@ -28,6 +30,9 @@ export const GET = async (NextRequest: NextRequest) => {
         })
 
     }catch(e){
-        console.error(e);	
+        return NextResponse.json(
+            { success: false, error: 'File not found.' },
+            { status: 404 }
+        );
     }
 };

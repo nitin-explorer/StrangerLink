@@ -1,29 +1,15 @@
 import express from 'express';
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import { prisma } from './lib/db.js';
-
 const app = express();
 
 
 
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+
 app.use(cookieParser())
-app.use(cors({origin: 'http://localhost:3000', credentials: true}));
-app.use(express.json());
-
-app.use((req, _res, next)=>{
-    console.log(req.path, req.body);
-    
-    next()
-})
+app.use(cors({origin: corsOrigin, credentials: true}));
+app.use(express.json({ limit: '10mb' }));
 
 
-app.get('/test', async (_req, res) => {
-    const users = await prisma.user.findMany()
-
-    res.json(users)
-})
-
-
-//* I exported the app for testing vitest:
 export default app

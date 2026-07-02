@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
+import path from 'path';
 import mime from 'mime'
 
 export const GET = async (NextRequest: NextRequest) => {
@@ -16,8 +17,9 @@ export const GET = async (NextRequest: NextRequest) => {
         );
     }
 
-    const imagePath = `media/${'profile-pics'}/${imageName}`;
-    const imageMimeType = mime.getType(imageName) || 'application/octet-stream'
+    const sanitizedImageName = path.basename(imageName);
+    const imagePath = path.join('media', 'profile-pics', sanitizedImageName);
+    const imageMimeType = mime.getType(sanitizedImageName) || 'application/octet-stream'
 
     try{
         const stream = fs.createReadStream(imagePath)
@@ -29,6 +31,9 @@ export const GET = async (NextRequest: NextRequest) => {
         })
 
     }catch(e){
-        console.error(e);	
+        return NextResponse.json(
+            { success: false, error: 'Image not found.' },
+            { status: 404 }
+        );
     }
 };

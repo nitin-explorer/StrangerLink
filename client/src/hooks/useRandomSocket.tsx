@@ -1,8 +1,7 @@
-// import { useSocket } from '@/context/socket-context';
 import { MatchStatus } from '@/components/random-chat/FindMatchButton';
 import { useSocket } from '@/context/generic-socket-context';
 import { useRandomChatContext } from '@/context/RandomRoomContext';
-import { useEffect, useRef,} from 'react';
+import { useEffect, useRef} from 'react';
 import toast from 'react-hot-toast';
 import { useTypingReceiver } from './useTypingReceiver';
 import { invitedToRoomToast } from '@/components/shared/InvitedToRoomToast';
@@ -19,13 +18,13 @@ export function useRandomSocket(
 
 	useEffect(() => {
 		socket.on('error', (e) => {
-			console.log(e);
+			console.error(e);
 		});
 		socket.on('connect_error', (e) => {
-			console.log(e);
+			console.error(e);
 		});
 
-		socket.on('error-event', (payload: string)=>{ //* Custom error from server.
+		socket.on('error-event', (payload: string)=>{
 			toast.error(payload)
 		})
 
@@ -35,8 +34,8 @@ export function useRandomSocket(
 				messageType: 'event',
 				textContent: 'You are connected, say "Happy dogs day!" ',
 				userId: 'event-user',
-				profilePicPath: null,
-				roomId: (socket as any).data?.matchRoom || 'random room', //* I think this does not serve any purpose as of now.
+				identifier: 'event',
+				roomId: (socket as any).data?.matchRoom || 'random room',
 				username: 'green',
 				timeStamp: new Date()
 			} as EventMessage);
@@ -44,8 +43,8 @@ export function useRandomSocket(
 				messageType: 'event',
 				textContent: "⚠️ Messages won't be saved. Create a private room to persist all messages. ",
 				userId: 'event-user',
-				profilePicPath: null,
-				roomId: (socket as any).data?.matchRoom || 'random room', //* I think this does not serve any purpose as of now.
+				identifier: 'event',
+				roomId: (socket as any).data?.matchRoom || 'random room',
 				username: 'gray',
 				timeStamp: new Date()
 			} as EventMessage);
@@ -54,7 +53,6 @@ export function useRandomSocket(
 		});
 
 		socket.on('receive-message', (payload: ClientPrivateTextMessage,) => {
-				console.log(payload);
 				insertMessage(payload);
 			}
 		);
@@ -71,9 +69,9 @@ export function useRandomSocket(
 				messageType: 'event',
 				textContent: 'Stranger left',
 				userId: 'event-user',
-				roomId: (socket as any).data?.matchRoom || 'random room', //* I think this does not serve any purpose as of now.
-				profilePicPath: null,
-				username: 'gray', //* Determines the color of the message.
+				identifier: 'event',
+				roomId: (socket as any).data?.matchRoom || 'random room',
+				username: 'gray',
 				timeStamp: new Date()
 			} as EventMessage);
 			setUsersTyping([]);
@@ -90,14 +88,13 @@ export function useRandomSocket(
 
 
 		if (!socket.connected) {
-			//! I believe I won't need this
 			socket.connect();
 		}
 		return () => {
-			console.log('Unmounting random socket ');
 			socket.disconnect();
 			socket.off('connect_error');
 			socket.off('error');
+			socket.off('error-event');
 			socket.off('match-found');
 			socket.off('receive-message');
 			socket.off('stranger-left');
@@ -108,7 +105,3 @@ export function useRandomSocket(
 		};
 	}, [socket]);
 }
-
-
-
-

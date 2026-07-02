@@ -3,9 +3,6 @@
 const internalURL = process.env.NEXT_PUBLIC_INTERNAL_URL
 const internalPort = process.env.NEXT_PUBLIC_INTERNAL_PORT
 
-console.log({internalURL, internalPort});
-
-
 export const internalBaseURL = new URL(internalURL as string)
 internalBaseURL.port = internalPort as string
 

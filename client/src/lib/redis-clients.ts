@@ -5,15 +5,17 @@ import { userIndexKey } from '@shared/keys/index-keys';
 
 
 if (!process.env.REDIS_PORT || !process.env.REDIS_HOST) {
-  throw new Error('REDIS_PORT is not defined');
+  throw new Error('REDIS_PORT and REDIS_HOST must be defined');
 }
+
+const redisPassword = process.env.REDIS_PASSWORD ? process.env.REDIS_PASSWORD.trim() : undefined;
 
 export const client = createClient({
   socket: {
     host: process.env.REDIS_HOST,
     port: parseInt(process.env.REDIS_PORT),
   },
-  password: '',
+  password: redisPassword,
 });
 
 let isConnected = false;
@@ -44,16 +46,23 @@ async function createIndex() {
   const existing = await client.ft._list();
   if (existing.includes(userIndexKey)) return;
 
-  await client.ft.create(
-    userIndexKey,
-    {
-      '$.userId': { type: SchemaFieldTypes.TAG, AS: 'userId' },
-      '$.data.username': { type: SchemaFieldTypes.TEXT, AS: 'username', SORTABLE: true },
-    },
-    {
-      ON: 'JSON',
-      PREFIX: userJSONkey(''),
+  try {
+    await client.ft.create(
+      userIndexKey,
+      {
+        '$.userId': { type: SchemaFieldTypes.TAG, AS: 'userId' },
+        '$.data.username': { type: SchemaFieldTypes.TEXT, AS: 'username', SORTABLE: true },
+      },
+      {
+        ON: 'JSON',
+        PREFIX: userJSONkey(''),
+      }
+    );
+  } catch (err: any) {
+    if (err?.message?.includes('Index already exists')) {
+      console.log('Redis index already exists, skipping');
+    } else {
+      throw err;
     }
-  );
-
+  }
 }

@@ -1,15 +1,15 @@
 type MessageType = 'text' | 'file' | 'event'; // mirrors Prisma enum
 
 type PrivateBaseMessage = {
-  username: string?;
+  username: string | null;
   messageType: MessageType;
   roomId: string;
   timeStamp: Date;
-  profilePicPath : string?;
-  userId: string?; //$ In Randoms chats this will be  the socketId, To know if the message belongs yo you from const own = chatIdentifier === message.userId
+  profilePicPath: string | null;
+  userId: string | null;
   identifier: string;
-  countryCode: string?;
-	gender: ('male'|'female'|'unknown')?;
+  countryCode: string | null;
+  gender: ('male'|'female'|'unknown') | null;
 };
 
 interface ClientPrivateTextMessage extends PrivateBaseMessage {
@@ -19,18 +19,17 @@ interface ClientPrivateTextMessage extends PrivateBaseMessage {
 
 
 interface ClientPrivateFileMessageBeforeSend extends PrivateBaseMessage{
-  //- May 3: Already thought about how to handle files over sockets. These types will both be sent from sockets and received from sockets. metadata is important to be received over sockets as well. Once a client uploads a file via zod validation over an input of type file, a file url will be generated pointing to the file saved in the server, while the second socket will receive the metadata in order to load that file.
   messageType: 'file';
-  bytes: Uint8Array?
+  bytes: Uint8Array | null;
 }
 
 interface ClientPrivateFileMessageWhenReceived extends ClientPrivateFileMessageBeforeSend {
-  fileUrl: string?;
-  fileSize?: number;
-  mimeType?: string;
+  fileUrl: string | null;
+  fileSize: number | null;
+  mimeType: string | null;
   fileName: string;
-  bytes: Uint8Array?;
-  fileType?: string
+  bytes: Uint8Array | null;
+  fileType: string | null;
 }
 
 

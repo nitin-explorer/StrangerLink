@@ -28,11 +28,10 @@ export const saveTextMessage = async(payload: ClientPrivateTextMessage, userId: 
         return {success: true, msg: 'success'} 
     } catch(e){
         if(e instanceof ZodError){    
-            console.log(e);
             const msg= Object.values(e.flatten().fieldErrors).flat()[0] || "Invalid input"
             return {success: false, msg} 
         }
-        return {success: false, msg: e}
+        return {success: false, msg: 'Failed to save message'}
     }
 
 }

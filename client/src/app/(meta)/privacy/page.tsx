@@ -1,4 +1,11 @@
+import type { Metadata } from 'next';
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description:
+    'StrangerLink privacy policy. Learn how we handle your data, messaging privacy, and anonymous usage on our chat platform.',
+};
 
 export default function PrivacyPage() {
   return (

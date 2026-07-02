@@ -1,0 +1,80 @@
+ARG NEXT_PUBLIC_INTERNAL_URL
+ARG NEXT_PUBLIC_INTERNAL_PORT
+ARG NEXT_PUBLIC_EXPRESS_URL
+ARG NEXT_PUBLIC_EXPRESS_PORT
+ARG REDIS_HOST
+ARG REDIS_PORT
+
+FROM node:22-slim AS builder
+
+ARG NEXT_PUBLIC_INTERNAL_URL
+ARG NEXT_PUBLIC_INTERNAL_PORT
+ARG NEXT_PUBLIC_EXPRESS_URL
+ARG NEXT_PUBLIC_EXPRESS_PORT
+ARG REDIS_HOST
+ARG REDIS_PORT
+ENV NEXT_PUBLIC_INTERNAL_URL=$NEXT_PUBLIC_INTERNAL_URL
+ENV NEXT_PUBLIC_INTERNAL_PORT=$NEXT_PUBLIC_INTERNAL_PORT
+ENV NEXT_PUBLIC_EXPRESS_URL=$NEXT_PUBLIC_EXPRESS_URL
+ENV NEXT_PUBLIC_EXPRESS_PORT=$NEXT_PUBLIC_EXPRESS_PORT
+ENV REDIS_HOST=$REDIS_HOST
+ENV REDIS_PORT=$REDIS_PORT
+
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+  openssl ca-certificates && \
+  rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY shared/package*.json ./shared/
+RUN cd shared && npm ci
+
+COPY client/package*.json ./client/
+RUN cd client && npm ci
+
+COPY shared/ ./shared/
+COPY client/ ./client/
+
+WORKDIR /app/client
+RUN npx prisma generate --schema=../shared/prisma/schema.prisma
+RUN npm run build
+
+FROM node:22-slim
+
+ARG NEXT_PUBLIC_INTERNAL_URL
+ARG NEXT_PUBLIC_INTERNAL_PORT
+ARG NEXT_PUBLIC_EXPRESS_URL
+ARG NEXT_PUBLIC_EXPRESS_PORT
+ARG REDIS_HOST
+ARG REDIS_PORT
+ENV NEXT_PUBLIC_INTERNAL_URL=$NEXT_PUBLIC_INTERNAL_URL
+ENV NEXT_PUBLIC_INTERNAL_PORT=$NEXT_PUBLIC_INTERNAL_PORT
+ENV NEXT_PUBLIC_EXPRESS_URL=$NEXT_PUBLIC_EXPRESS_URL
+ENV NEXT_PUBLIC_EXPRESS_PORT=$NEXT_PUBLIC_EXPRESS_PORT
+ENV REDIS_HOST=$REDIS_HOST
+ENV REDIS_PORT=$REDIS_PORT
+
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+  openssl ca-certificates && \
+  rm -rf /var/lib/apt/lists/*
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nodeuser
+
+WORKDIR /app
+
+COPY --from=builder /app/client/node_modules ./client/node_modules
+COPY --from=builder /app/shared ./shared
+COPY --from=builder /app/client/.next ./client/.next
+COPY --from=builder /app/client/public ./client/public
+COPY --from=builder /app/client/package.json ./client/
+COPY --from=builder /app/client/next.config.ts ./client/
+
+USER nodeuser
+WORKDIR /app/client
+
+EXPOSE 3000
+
+ENV NODE_ENV=production
+
+CMD ["npm", "run", "start"]

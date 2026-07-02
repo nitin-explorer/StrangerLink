@@ -6,7 +6,7 @@ import { headers } from "next/headers";
 
 export const getRoomMessages = async (roomId: string, limit?: number): Promise<GetRoomMessagesActionResponse> => {
 
-
+    const safeLimit = limit ? Math.min(limit, 200) : 50;
     if(roomId !== 'GLOBAL'){ //$ If roomId is not global, check if the user is in the room.
         
             const headerStore = await headers();
@@ -27,7 +27,7 @@ export const getRoomMessages = async (roomId: string, limit?: number): Promise<G
     const rawMessages = await prisma.message.findMany({
         where: { roomId },
         orderBy: { timestamp: 'desc' },
-        take: limit, //$ if undefined, will return all.
+        take: safeLimit,
         include: {
             user: { select: { username: true, profilePicPath: true, gender: true, country: true } },
         },
@@ -59,8 +59,9 @@ export const getRoomMessages = async (roomId: string, limit?: number): Promise<G
                 messageType: 'file',
                 fileName: msg.fileName ?? '',
                 fileUrl: msg.fileUrl ?? '',
-                mimeType: msg.mimeType ?? undefined,
-                fileSize: msg.size ?? undefined,
+                mimeType: msg.mimeType ?? null,
+                fileSize: msg.size ?? null,
+                fileType: (msg.mimeType ?? '').startsWith('image/') ? 'image' : null,
                 identifier: msg.identifier,
                 bytes: msg.bytes || null,
                 countryCode: msg.user?.country || null,

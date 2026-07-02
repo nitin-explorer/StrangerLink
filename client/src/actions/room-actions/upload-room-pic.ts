@@ -35,7 +35,8 @@ const _uploadRoomPic = async({file, roomId}: {file: File, roomId: string}): Prom
 
     const bytes = new Uint8Array(await file.arrayBuffer())
 
-    const fullFileName = crypto.randomUUID() +'-' + file.name
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+    const fullFileName = crypto.randomUUID() +'-' + safeName
 
     
     const path  = 'media/room-pics/' + fullFileName

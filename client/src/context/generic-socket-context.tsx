@@ -1,6 +1,6 @@
 "use client"
 import { serverBaseURL } from '@/lib/network';
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 export const SocketContext = createContext<Socket | null>(null);
@@ -19,6 +19,13 @@ const socket = useMemo(() => io(serverBaseURL.href + nameSpace, {
 	transports: ["websocket"],
 	autoConnect
 }), [nameSpace, withCredentials, autoConnect]);
+
+useEffect(() => {
+	return () => {
+		socket.disconnect();
+	};
+}, [socket]);
+
 	return (
 		<SocketContext.Provider value={socket}>
 			{children}

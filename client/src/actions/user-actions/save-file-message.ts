@@ -12,20 +12,22 @@ import { userRoomsKey } from "@shared/keys/user-keys"
 
 
 const _saveFileMessage = async({ payload, file }: {
-    payload: ClientPrivateFileMessageBeforeSend
+    payload: any
     file: File
 })=>{
     
     const headerStore = await headers()
     
     const userId = headerStore.get('userId')
-    
-    const isInRoom = await client.sIsMember(userRoomsKey(userId!), payload.roomId || '')
+    if (!userId) return { success: false, msg: 'Unauthorized.' };
+
+    const isInRoom = await client.sIsMember(userRoomsKey(userId), payload.roomId || '')
     if(!isInRoom) return {success: false, msg: 'You are not allowed to send messages in this room'}
     
     await fs.mkdir('media/message-files', {recursive: true})
 
-    const fullFileName = crypto.randomUUID() + '-' + file.name
+    const safeFileName = file.name.replace(/[/\\]/g, '_');
+    const fullFileName = crypto.randomUUID() + '-' + safeFileName;
 
     const filePath = 'media/message-files/' +  fullFileName
 
@@ -39,12 +41,12 @@ const _saveFileMessage = async({ payload, file }: {
         data: {
             messageType: payload.messageType,
             roomId: payload.roomId!,
-            userId: userId!,
+            userId: userId,
             fileName: fullFileName,
             fileUrl: filePath,
             mimeType: file.type,
             size: file.size,
-            identifier: userId!,
+            identifier: userId,
         }
     })
 

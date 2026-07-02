@@ -27,7 +27,7 @@ const messageFileRefiner = (file: File) => {
 
 export const messageFileSchema = z.object({
 	file: fileSchema.refine(messageFileRefiner, {
-		message: 'File must be an image and less than 5MB.',
+		message: 'File must be an image and less than 10MB.',
 	}),
 	payload: z.object({
 		messageType: z.literal('file'),
@@ -37,7 +37,7 @@ export const messageFileSchema = z.object({
 		profilePicPath: z.string().nullable(),
 		timeStamp: z.date(),
 		identifier: z.string(),
-		bytes: z.instanceof(Uint8Array).nullable(),
+		bytes: z.custom<Uint8Array>(val => val instanceof Uint8Array).nullable(),
 		countryCode: z.string().nullable(),
 		gender: z.enum(['male', 'female', 'unknown']).nullable()
 	})

@@ -1,25 +1,21 @@
 import { z, ZodError } from 'zod';
 
-const fileRefiner1 = (file: File) => {
-    return file.type.startsWith('image/');
-};
-
-const fileRefiner2 = (file: File) => {
-    return file.size > 0 && file.size < 4 * 100 * 1024; //- 400kb  I've seen that images are very little so I could decrease this even more to trigger it more often
-};
-
-const imageSchema = z
-    .instanceof(File, { message: 'Image is required' })
-    .refine(fileRefiner1, { message: 'File must be an image' })
-    .refine(fileRefiner2, { message: '⚠️ Image size must be less than 400KB, use Private Rooms to send larger files',});
+const imageSchema = z.object({
+    size: z.number().min(1).max(4 * 100 * 1024),
+    type: z.string().startsWith('image/'),
+    fileName: z.string().min(1),
+});
 
 
 
 export const handleBlobMessage = ( payload: ClientPrivateFileMessageWhenReceived)=>{
 
     try {
-        const blob = new File([payload.bytes!], payload.fileName, { type: payload.fileType,});
-        imageSchema.parse(blob);
+        imageSchema.parse({
+            size: payload.bytes?.length || 0,
+            type: payload.fileType,
+            fileName: payload.fileName,
+        });
         return {success: true, message: 'success'}
 
     } catch (e) {
@@ -30,6 +26,6 @@ export const handleBlobMessage = ( payload: ClientPrivateFileMessageWhenReceived
             return {success: false, message: msg};
         }
         
-        return {success: false, message: 'Something went wrong, see the log.'}
+        return {success: false, message: 'Invalid file.'}
     }
 }
