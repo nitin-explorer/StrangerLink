@@ -27,7 +27,6 @@ export default function  SessionProvider({initialSession, children}: { initialSe
 			if (user) {
 				setSession(user);
 			} else {
-				console.log('No user found at session-context.tsx');
 				setSession(null);
 				
                 // router.push('/login');  //! New update, you can have explicit null session
@@ -56,7 +55,7 @@ export const useSession = () => {
 	const session = useContext(SessionContext);
 	if (!session) {
 		throw new Error(
-			'useSession must be used within a <SocketProvider>'
+			'useSession must be used within a <SessionProvider>'
 		);
 	}
 	return session;

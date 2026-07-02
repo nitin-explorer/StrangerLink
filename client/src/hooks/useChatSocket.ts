@@ -12,6 +12,7 @@ export function useChatSocket(
 	const socket = useSocket();
 	const router = useRouter();
 	const currentUsersTyping = useRef<Set<string>>(new Set());
+	useTypingReceiver(socket, currentUsersTyping, setUsersTyping)
 	
 	useEffect(() => {
 		socket.on('error', (e) => {
@@ -41,10 +42,6 @@ export function useChatSocket(
 				updateOnlineCount(serverPayload)
 			})
 		}
-		if(setUsersTyping){
-			useTypingReceiver(socket, currentUsersTyping, setUsersTyping)
-		}
-
 		socket.on( 'prevent-duplicate-connection', (_serverPayload: { msg: string }) => {
 				router.push('/duplicate-connection');
 			}

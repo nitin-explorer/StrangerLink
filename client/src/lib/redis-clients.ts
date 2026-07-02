@@ -15,7 +15,6 @@ export const client = createClient({
     host: process.env.REDIS_HOST,
     port: parseInt(process.env.REDIS_PORT),
     tls: true,
-    rejectUnauthorized: false,
   },
   password: redisPassword,
 });

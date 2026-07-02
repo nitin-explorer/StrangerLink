@@ -39,13 +39,14 @@ export const checkRateLimit = async (
 
     if (count > config.limit) {
       await client.zRem(key, `${now}`);
-      await client.expire(key, Math.ceil(config.windowMs / 1000));
       return true;
     }
 
-    await client.expire(key, Math.ceil(config.windowMs / 1000));
+    if (count === 1) {
+      await client.expire(key, Math.ceil(config.windowMs / 1000));
+    }
     return false;
   } catch {
-    return false;
+    return true;
   }
 };

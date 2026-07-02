@@ -1,15 +1,19 @@
 
-//* INTERNAL (NEXT JS BACKEND)
-const internalURL = process.env.NEXT_PUBLIC_INTERNAL_URL
-const internalPort = process.env.NEXT_PUBLIC_INTERNAL_PORT
+const rawInternalURL = process.env.NEXT_PUBLIC_INTERNAL_URL;
+const rawInternalPort = process.env.NEXT_PUBLIC_INTERNAL_PORT;
+const rawServerURL = process.env.NEXT_PUBLIC_EXPRESS_URL;
+const rawServerPort = process.env.NEXT_PUBLIC_EXPRESS_PORT;
 
-export const internalBaseURL = new URL(internalURL as string)
-internalBaseURL.port = internalPort as string
+if (!rawInternalURL) {
+  throw new Error('NEXT_PUBLIC_INTERNAL_URL environment variable is not set');
+}
+if (!rawServerURL) {
+  throw new Error('NEXT_PUBLIC_EXPRESS_URL environment variable is not set');
+}
 
-//* EXPRESS BACKEND
-const serverURL = process.env.NEXT_PUBLIC_EXPRESS_URL
-const serverPort = process.env.NEXT_PUBLIC_EXPRESS_PORT
+export const internalBaseURL = new URL(rawInternalURL)
+if (rawInternalPort) internalBaseURL.port = rawInternalPort
 
-export const serverBaseURL = new URL(serverURL as string)   
-serverBaseURL.port = serverPort as string
+export const serverBaseURL = new URL(rawServerURL)
+if (rawServerPort) serverBaseURL.port = rawServerPort
 

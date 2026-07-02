@@ -11,6 +11,7 @@ export function useGlobalSocket(
     const { session } = useSession() as { session: UserSession | null }; 
     const socket = useSocket();
     const currentUsersTyping = useRef<Set<string>>(new Set())
+    useTypingReceiver(socket, currentUsersTyping, setUsersTyping)
 
     useEffect(() => {
         socket.on('error', (e) => {
@@ -44,8 +45,6 @@ export function useGlobalSocket(
         }
 
 
-        useTypingReceiver(socket, currentUsersTyping, setUsersTyping)
-    
         return () => {
             socket.disconnect();
             socket.off('connect_error');

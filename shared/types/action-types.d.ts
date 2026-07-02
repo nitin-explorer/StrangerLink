@@ -46,7 +46,7 @@ type RoomMeta = {
 	id: string;
 	roomName: string;
 	isPrivate: boolean;
-	roomPicPath: string?;
+	roomPicPath: string | null;
 	createdBy: {
 		id?: string;
 		username?: string;
@@ -101,7 +101,7 @@ type RedisJsonUserResult = {
 	userId: string;
 	data: {
 		username: string;
-		profilePicPath: string?
+		profilePicPath: string | null
 	};
 };
 

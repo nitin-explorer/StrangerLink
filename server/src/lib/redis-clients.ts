@@ -14,7 +14,6 @@ export const client = createClient({
         host: process.env.REDIS_HOST,
         port: parseInt(process.env.REDIS_PORT),
         tls: true,
-        rejectUnauthorized: false
     },
     password: redisPassword
 })
@@ -35,7 +34,6 @@ const kickUserSubscriber = createClient({
         host: process.env.REDIS_HOST,
         port: parseInt(process.env.REDIS_PORT),
         tls: true,
-        rejectUnauthorized: false
     },
     password: redisPassword
 })
@@ -45,7 +43,7 @@ kickUserSubscriber.on('error', (err) => {
 
 await kickUserSubscriber.connect()
 
-await kickUserSubscriber.subscribe('kick-user', async (msg: string)=>{
+await kickUserSubscriber.subscribe('strangerlink:kick-user', async (msg: string)=>{
     try {
         await onKick(privateChatIo, client as RedisClientType, msg)
     } catch (err) {

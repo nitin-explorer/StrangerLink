@@ -9,12 +9,13 @@ const connectionCounts = new Map<string, { count: number; resetAt: number }>();
 const CONNECTION_LIMIT = 20;
 const CONNECTION_WINDOW_MS = 60000;
 
-setInterval(() => {
+const cleanupInterval = setInterval(() => {
 	const now = Date.now();
 	for (const [ip, entry] of connectionCounts) {
 		if (now > entry.resetAt) connectionCounts.delete(ip);
 	}
 }, 60000);
+cleanupInterval.unref();
 
 const checkConnectionRate = (socket: Socket): boolean => {
 	const ip = socket.handshake.address;
@@ -59,7 +60,7 @@ const authenticateSocketStrict = async ( socket: Socket, next: (err?: Error) => 
 	}
 
 	try {
-		const user = await prisma.user.findFirst({
+		const user = await prisma.user.findUnique({
 			where: { id: decoded },
 			select: {
 				email: true,
@@ -75,7 +76,8 @@ const authenticateSocketStrict = async ( socket: Socket, next: (err?: Error) => 
 
 		socket.user = user;
 		next();
-	} catch {
+	} catch (err) {
+		console.error('Auth error:', err);
 		next(new Error('Authentication service unavailable'));
 	}
 };
@@ -101,7 +103,7 @@ const authenticateSocketOptional = async ( socket: Socket, next: (err?: Error) =
 	}
 
 	try {
-		const user = await prisma.user.findFirst({
+		const user = await prisma.user.findUnique({
 			where: { id: decoded },
 			select: {
 				email: true,
@@ -118,7 +120,8 @@ const authenticateSocketOptional = async ( socket: Socket, next: (err?: Error) =
 
 		socket.user = user;
 		next();
-	} catch {
+	} catch (err) {
+		console.error('Optional auth error:', err);
 		socket.user = null;
 		next();
 	}

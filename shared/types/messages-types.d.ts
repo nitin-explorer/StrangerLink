@@ -36,7 +36,7 @@ interface ClientPrivateFileMessageWhenReceived extends ClientPrivateFileMessageB
 interface EventMessage extends PrivateBaseMessage {
   messageType: 'event';
   textContent: string;
-  userId: 'event-user';
+  userId: string | null;
 
 } 
 

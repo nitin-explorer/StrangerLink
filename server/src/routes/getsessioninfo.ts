@@ -15,7 +15,7 @@ router.get('/api/getsessioninfo', async (req, res) => {
       return;
     }
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
+    const payload = jwt.verify(token, process.env.JWT_SECRET as string, { algorithms: ['HS256'] }) as { userId: string };
 
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },

@@ -85,7 +85,7 @@ export const searchUsersRedis = async (searchInput: string): Promise<UserSearchA
 		})
 
 		//* Remove self-user
-		const results = resultsWithHash.filter((user)=> user.userId !== userId)
+		const results = resultsWithHash.filter((user)=> user.userId !== '#' + userId)
 
         if(results.length > 0){ //$ If no results, for-loop again until no more parsers.
 

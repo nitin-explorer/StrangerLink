@@ -2,10 +2,10 @@ import type { NextConfig } from "next";
 
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
-  reactStrictMode: false,
+  reactStrictMode: true,
   experimental: {
     serverActions: {
-      bodySizeLimit: '1000mb',
+      bodySizeLimit: '10mb',
     },
   },
   webpack: (config, { isServer }) => {

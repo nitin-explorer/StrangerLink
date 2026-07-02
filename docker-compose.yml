@@ -24,11 +24,11 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: "postgresql://postgres:86e3a7832ca51b169c156307b9302cdb@8dpb6euv.us-east.database.insforge.app:5432/insforge?sslmode=require"
+      DATABASE_URL: "${DATABASE_URL}"
       JWT_SECRET: "${JWT_SECRET:-CHANGE_ME_TO_A_STRONG_RANDOM_SECRET}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      CORS_ORIGIN: "http://localhost:3000"
+      CORS_ORIGIN: "${CORS_ORIGIN:-http://localhost:3000}"
     depends_on:
       redis:
         condition: service_healthy
@@ -52,8 +52,6 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      DATABASE_URL: "postgresql://postgres:86e3a7832ca51b169c156307b9302cdb@8dpb6euv.us-east.database.insforge.app:5432/insforge?sslmode=require"
-      JWT_SECRET: "${JWT_SECRET:-CHANGE_ME_TO_A_STRONG_RANDOM_SECRET}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:

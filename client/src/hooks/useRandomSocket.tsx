@@ -15,6 +15,7 @@ export function useRandomSocket(
 	const socket = useSocket();
 	const {setDisabled, setStrangerInviteInfo} = useRandomChatContext();
 	const currentUsersTyping = useRef<Set<string>>(new Set())
+	useTypingReceiver(socket, currentUsersTyping, setUsersTyping)
 
 	useEffect(() => {
 		socket.on('error', (e) => {
@@ -76,8 +77,6 @@ export function useRandomSocket(
 			} as EventMessage);
 			setUsersTyping([]);
 		});
-
-		useTypingReceiver(socket, currentUsersTyping, setUsersTyping)
 
 		socket.on('receive-room-invite', (payload: {roomId: string, username: string})=>{
 				

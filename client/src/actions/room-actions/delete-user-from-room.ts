@@ -80,7 +80,7 @@ export const deleteUserFromRoom = async ( userId: string, roomId: string): Promi
 
     await client.sRem(userRoomsKey(userId), roomId)
 
-    await client.publish('kick-user', JSON.stringify({ userId, roomId, kickedBy: isAdmin.user.username, kicking: foundRelation.user.username }));
+    await client.publish('strangerlink:kick-user', JSON.stringify({ userId, roomId, kickedBy: isAdmin.user.username, kicking: foundRelation.user.username }));
 
     return { success: true, msg: 'Success' };
 };
