@@ -20,6 +20,8 @@ export function  RandomGlobalChatHeader({usersTyping} : {usersTyping: string[]})
 
         getGlobalUsersCount().then((count) => {
             setUsersOnline(count)
+        }).catch(() => {
+            setUsersOnline(0);
         })
     }, [])
 

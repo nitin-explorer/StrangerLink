@@ -44,7 +44,7 @@ export function  FileMessage ({message, own, showMeta, displayedUsername}: TextM
             {showMeta && <div className={`flex  items-center gap-1 ${own ? 'justify-end': 'justify-start'} `}>
                 <p className="text-[#ffffff] text-[14px] font-bold">{displayedUsername}</p>
                 <p className="text-[#706e6e] text-xs">{new Date(message.timeStamp).toLocaleString()}</p>
-                {message.gender && icons[message.gender]}
+                {message.gender && (icons[message.gender] || icons.unknown)}
                 <CountyIcon countryCode={message.countryCode || null} className='h-5 w-7'></CountyIcon>
             </div>}
             <div className="flex justify-center items-center mt-2 mb-4">

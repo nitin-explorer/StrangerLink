@@ -20,10 +20,14 @@ export const getOnlineUsersInRoomNumber = async(roomId: string)=>{
 
 export const getOnlineGlobalSocketsCount = async()=>{
 
-	let count = 0;
-	for await (const _key of client.scanIterator({ MATCH: globalActiveIPsKey('*'), COUNT: 100 })) {
-		count++;
+	try {
+		let count = 0;
+		for await (const _key of client.scanIterator({ MATCH: globalActiveIPsKey('*'), COUNT: 100 })) {
+			count++;
+		}
+		return count
+	} catch {
+		console.error('Redis scan failed in getOnlineGlobalSocketsCount');
+		return 0;
 	}
-
-	return count
 }

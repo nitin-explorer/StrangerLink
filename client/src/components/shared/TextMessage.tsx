@@ -29,7 +29,7 @@ export function TextMessage ({message, own, showMeta, displayedUsername}: TextMe
         <div className={`flex flex-col ${own ? 'text-end justify-end': 'text-start'}`}>
             {showMeta && <div className={`flex  items-center gap-1 ${own ? 'justify-end': 'justify-start'} `}>
                 <p className="text-[#c2c2c2] text-[14px] font-bold">{displayedUsername}</p>
-                {message.gender && icons[message.gender]}
+                {message.gender && (icons[message.gender] || icons.unknown)}
                 <CountyIcon countryCode={message.countryCode || null} className='h-5 w-7'></CountyIcon>
                 <p className="text-[#706e6e] text-xs">{new Date(message.timeStamp).toLocaleString()}</p>
             </div>}

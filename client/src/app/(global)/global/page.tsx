@@ -7,7 +7,7 @@ export default async function Global() {
 
 	if(!reversedMessages.success){
 		console.error(reversedMessages.msg)
-		return
+		return <div className="flex items-center justify-center h-full text-gray-400">Failed to load messages. Please try again.</div>
 	}
 
 	const messages = reversedMessages.messages.reverse()
