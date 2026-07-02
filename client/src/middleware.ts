@@ -24,16 +24,16 @@ export const middleware = async (req: NextRequest) => {
 	const cookieStore = await cookies();
 	const cookie = cookieStore.get('SERVER_TOKEN')?.value;
 
-	const response = await fetch(
-		new URL('/api/getsessioninfo', internalBaseURL),
-		{
-			headers: {Cookie: `SERVER_TOKEN=${cookie}`,},
-		}
-	);
-    
 	let user;
 	try {
-        //prettier-ignore
+		const response = await fetch(
+			new URL('/api/getsessioninfo', internalBaseURL),
+			{
+				headers: {Cookie: `SERVER_TOKEN=${cookie}`,},
+			}
+		);
+
+		//prettier-ignore
 		if (response.status === 401 || response.status === 404 || response.status === 500) {
 			user = null;
 		} else {
@@ -49,6 +49,7 @@ export const middleware = async (req: NextRequest) => {
 		}
 	} catch (e) {
 		console.error('API Error at middleware.ts');
+		user = null;
 	}
 
 	if (!user) {
