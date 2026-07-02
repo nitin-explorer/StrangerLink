@@ -12,7 +12,9 @@ const redisPassword = process.env.REDIS_PASSWORD ? process.env.REDIS_PASSWORD.tr
 export const client = createClient({
     socket :  {
         host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT)
+        port: parseInt(process.env.REDIS_PORT),
+        tls: true,
+        rejectUnauthorized: false
     },
     password: redisPassword
 })
@@ -31,7 +33,9 @@ await  client.connect()
 const kickUserSubscriber = createClient({
     socket :  {
         host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT)
+        port: parseInt(process.env.REDIS_PORT),
+        tls: true,
+        rejectUnauthorized: false
     },
     password: redisPassword
 })
