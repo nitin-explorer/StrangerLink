@@ -7,7 +7,7 @@ services:
     repo: https://github.com/nitin-explorer/StrangerLink
     rootDir: server
     buildCommand: |
-      cd ../shared && npm ci && cd ../server && npm ci && npx prisma generate --schema=../shared/prisma/schema.prisma
+      cd ../shared && npm ci && cd ../server && npm ci --include=dev && npx prisma generate --schema=../shared/prisma/schema.prisma
     startCommand: npx tsx --require tsconfig-paths/register src/app-listens.ts
     envVars:
       - key: NODE_ENV
@@ -34,7 +34,7 @@ services:
     repo: https://github.com/nitin-explorer/StrangerLink
     rootDir: client
     buildCommand: |
-      cd ../shared && npm ci && cd ../client && npm ci && npx prisma generate --schema=../shared/prisma/schema.prisma && npm run build
+      cd ../shared && npm ci && cd ../client && npm ci --include=dev && npx prisma generate --schema=../shared/prisma/schema.prisma && npm run build
     startCommand: npx next start -p $PORT
     envVars:
       - key: NODE_ENV
